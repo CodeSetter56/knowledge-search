@@ -2,6 +2,14 @@
 
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import {
+  FaFilePdf,
+  FaFileWord,
+  FaFileAlt,
+  FaFileExcel,
+  FaFileCode,
+  FaImage,
+} from "react-icons/fa";
 
 // for tailwind
 export function cn(...inputs) {
@@ -73,6 +81,58 @@ export function getFileCategory(fileType) {
   }
 
   return "other";
+}
+
+// Exported function to get file icon component (MODIFIED to return object)
+export function getFileIcon(file) {
+  const isImage = file.fileType.startsWith("image/");
+
+  if (file.fileType.includes("pdf"))
+    return {
+      icon: <FaFilePdf className="text-red-500" size={24} />,
+      isImage: false,
+    };
+
+  if (file.fileType.includes("wordprocessingml"))
+    return {
+      icon: <FaFileWord className="text-blue-500" size={24} />,
+      isImage: false,
+    };
+
+  if (file.fileType === "text/plain")
+    return {
+      icon: <FaFileAlt className="text-gray-500" size={24} />,
+      isImage: false,
+    };
+
+  if (file.fileType.includes("spreadsheetml"))
+    return {
+      icon: <FaFileExcel className="text-green-500" size={24} />,
+      isImage: false,
+    };
+
+  if (
+    file.fileType.includes("xml") ||
+    file.fileType.includes("json") ||
+    file.fileType.includes("sql") ||
+    file.fileType.includes("csv")
+  ) {
+    return {
+      icon: <FaFileCode className="text-purple-500" size={24} />,
+      isImage: false,
+    };
+  }
+
+  if (isImage)
+    return {
+      icon: <FaImage className="text-pink-500" size={24} />,
+      isImage: true,
+    };
+
+  return {
+    icon: <FaFileAlt className="text-gray-500" size={24} />,
+    isImage: false,
+  };
 }
 
 // Logic to determine which counters to increment (used in upload/delete APIs)

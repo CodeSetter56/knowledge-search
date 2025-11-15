@@ -18,7 +18,8 @@ export function SearchBar({
 
   return (
     <form onSubmit={handleSearch} className="flex mb-8">
-      <div className="relative flex grow">
+      <div className="relative flex grow gap-1 items-center">
+        Search: 
         <Input
           type="text"
           value={searchQuery}
@@ -32,7 +33,6 @@ export function SearchBar({
         {/* Clear Button */}
         {searchQuery && (
           <Button
-            type="button"
             variant="ghost"
             size="icon-sm"
             onClick={handleClear}
@@ -43,7 +43,7 @@ export function SearchBar({
           </Button>
         )}
       </div>
-      <Button type="submit" className="rounded-l-none" disabled={isSearching}>
+      <Button type="submit" className="rounded-l-none bg-orange-200" disabled={isSearching}>
         {isSearching ? "..." : <FaSearch />}
       </Button>
     </form>

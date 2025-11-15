@@ -1,20 +1,15 @@
-// src/components/app/ResultsList.jsx
+// src/components/app/ResultsList.jsx - MODIFIED
 
 import { SearchResultItem } from "./SearchResultItem";
 
-export function ResultsList({
-  searchResults,
-  isSearching,
-  onDelete,
-  onStatsUpdate,
-}) {
+export function ResultsList({ searchResults, isSearching, onFileClick }) {
   if (isSearching) {
     return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="h-40 bg-secondary/30 rounded-lg animate-pulse"
+            className="h-32 bg-secondary/30 rounded-xl animate-pulse"
           />
         ))}
       </div>
@@ -32,14 +27,14 @@ export function ResultsList({
     );
   }
 
+  // 6. Use a grid layout for the icon view
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
       {searchResults.map((file) => (
         <SearchResultItem
           key={file._id}
           file={file}
-          onDelete={onDelete}
-          onStatsUpdate={onStatsUpdate}
+          onFileClick={onFileClick}
         />
       ))}
     </div>

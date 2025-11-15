@@ -1,5 +1,3 @@
-// src/app/api/search/route.js
-
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import File from "@/lib/models/file.model";

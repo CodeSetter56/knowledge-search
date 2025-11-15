@@ -9,6 +9,7 @@ const PDF_MAX_SIZE_BYTES = 1024 * 1024; // 1 MB
 
 export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
   const [isUploading, setIsUploading] = useState(false);
+  const [lastUploadedFile, setLastUploadedFile] = useState(null); // NEW: Track last uploaded file
 
   const onDrop = useCallback(
     async (acceptedFiles) => {
@@ -27,6 +28,7 @@ export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
       console.log(`[useFileUpload] File Dropped: ${file.name}`);
 
       setIsUploading(true);
+      setLastUploadedFile(null); // Clear previous result on new upload start
       const toastId = toast.loading(`Uploading ${file.name}...`);
       let responseData = null;
 
@@ -52,9 +54,12 @@ export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
         }
         console.log("[useFileUpload] Success:", responseData);
 
+        const newFile = responseData.newFile;
+        setLastUploadedFile(newFile); // Save the successfully uploaded file
+
         // Call the success callback passed from the parent
         if (onUploadSuccess) {
-          onUploadSuccess(responseData.newFile);
+          onUploadSuccess(newFile);
         }
 
         // Update stats immediately
@@ -64,18 +69,15 @@ export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
 
         // Handle success toast
         const credits = responseData.stats.pdfCreditsRemaining;
-        if (responseData.newFile.fileType === "application/pdf") {
+        if (newFile.fileType === "application/pdf") {
           toast.success(
-            `${responseData.newFile.filename} saved! (PDF scans left: ${credits})`,
+            `${newFile.filename} saved! (PDF scans left: ${credits})`,
             { id: toastId }
           );
         } else {
-          toast.success(
-            `${responseData.newFile.filename} analyzed and saved!`,
-            {
-              id: toastId,
-            }
-          );
+          toast.success(`${newFile.filename} analyzed and saved!`, {
+            id: toastId,
+          });
         }
       } catch (error) {
         console.error("[useFileUpload] Upload failed:", error);
@@ -115,5 +117,12 @@ export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
     disabled: isUploading,
   });
 
-  return { onDrop, isUploading, getRootProps, getInputProps, isDragActive };
+  return {
+    onDrop,
+    isUploading,
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    lastUploadedFile,
+  };
 }

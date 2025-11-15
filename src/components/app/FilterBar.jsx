@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { FaFilter, FaTimes } from "react-icons/fa";
 import { FILE_TYPE_FILTERS } from "@/lib/utils";
 
@@ -12,17 +11,36 @@ export function FilterBar({ filters, updateFilters, resetFilters }) {
 
   return (
     <div className="mb-6 p-4 bg-secondary/30 rounded-lg border">
-      <div className="flex items-center gap-2 mb-3">
-        <FaFilter className="text-muted-foreground" />
-        <h3 className="font-semibold">Filters</h3>
-        {hasActiveFilters && (
-          <Badge variant="secondary" className="ml-auto">
-            Active
-          </Badge>
-        )}
-      </div>
+      {/* Grid layout: 1fr (Filter Status) and 3 equal columns (Inputs) */}
+      <div className="grid grid-cols-2 md:grid-cols-[1fr_2fr_2fr_2fr] gap-3 md:items-end">
+        {/* Filter Status / Button Area (First Column) */}
+        <div className="flex flex-col justify-start h-full pb-1 pr-3">
+          {/* Filter Icon and Label (Stacked at the top of the column) */}
+          <div className="text-sm flex gap-2 text-muted-foreground mb-4">
+            <FaFilter className="text-primary" size={24} />
+            <h3 className="font-semibold text-lg text-foreground">Filter</h3>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* Conditional Clear Filters Button or No Filters message (Stacked below icon/label) */}
+          <div className="flex-1 flex flex-col justify-start">
+            {hasActiveFilters ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetFilters}
+                className="gap-2 w-full"
+              >
+                <FaTimes />
+                Clear Filters
+              </Button>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center pt-2">
+                No active filters.
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* File Type Filter */}
         <div>
           <label className="text-sm text-muted-foreground mb-1 block">
@@ -65,21 +83,6 @@ export function FilterBar({ filters, updateFilters, resetFilters }) {
           />
         </div>
       </div>
-
-      {/* Reset Button */}
-      {hasActiveFilters && (
-        <div className="mt-3 flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetFilters}
-            className="gap-2"
-          >
-            <FaTimes />
-            Clear Filters
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
