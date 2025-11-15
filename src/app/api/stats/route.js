@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 
-import dbConnect from "@/lib/db";
+import dbConnect from "@/lib/mongodb";
 
 import Stats from "@/lib/models/stats.model";
 
 export async function GET() {
   try {
-
     await dbConnect();
 
     let stats = await Stats.findOne({ _id: "global-stats" });
@@ -15,7 +14,6 @@ export async function GET() {
     }
 
     return NextResponse.json(stats);
-
   } catch (error) {
     console.error("[stats/GET] Error:", error);
     return NextResponse.json(

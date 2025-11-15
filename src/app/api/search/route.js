@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 
-import dbConnect from "@/lib/db";
+import dbConnect from "@/lib/mongodb";
 
 import File from "@/lib/models/file.model";
 
 export async function GET(req) {
   try {
-
     await dbConnect();
 
     // Extract query parameters from request URL
@@ -64,7 +63,6 @@ export async function GET(req) {
     ]);
 
     return NextResponse.json(results);
-    
   } catch (error) {
     console.error(error);
 
