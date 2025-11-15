@@ -229,7 +229,7 @@ export default function Home() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by keyword, tag, or content..."
-          className="flex-grow rounded-r-none text-base"
+          className="flex grow rounded-r-none text-base"
           disabled={isSearching}
         />
         <Button type="submit" className="rounded-l-none" disabled={isSearching}>
@@ -305,7 +305,7 @@ function SearchResultItem({ file }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-8 text-center">{getIcon()}</div>
+          <div className="flex shrink-0 w-8 text-center">{getIcon()}</div>
           <a
             href={file.path}
             target="_blank"
