@@ -7,7 +7,7 @@ import { fileToBase64 } from "@/lib/utils";
 
 const PDF_MAX_SIZE_BYTES = 1024 * 1024; // 1 MB
 
-export function useFileUpload({ onUploadSuccess }) {
+export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
   const [isUploading, setIsUploading] = useState(false);
 
   const onDrop = useCallback(
@@ -54,7 +54,12 @@ export function useFileUpload({ onUploadSuccess }) {
 
         // Call the success callback passed from the parent
         if (onUploadSuccess) {
-          onUploadSuccess(responseData.newFile, responseData.stats);
+          onUploadSuccess(responseData.newFile);
+        }
+
+        // Update stats immediately
+        if (onStatsUpdate) {
+          onStatsUpdate(responseData.stats);
         }
 
         // Handle success toast
@@ -86,7 +91,7 @@ export function useFileUpload({ onUploadSuccess }) {
         setIsUploading(false);
       }
     },
-    [onUploadSuccess]
+    [onUploadSuccess, onStatsUpdate]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

@@ -1,9 +1,12 @@
+// src/app/api/delete/route.js
+
 import { NextResponse } from "next/server";
 import { unlink } from "fs/promises";
 import path from "path";
 import dbConnect from "@/lib/mongodb";
 import File from "@/lib/models/file.model";
 import Stats from "@/lib/models/stats.model";
+import { getUploadCountersToIncrement } from "@/lib/utils";
 
 export async function DELETE(req) {
   try {
@@ -39,30 +42,15 @@ export async function DELETE(req) {
     // Update stats based on fileType
     let stats = await Stats.findOne({ _id: "global-stats" });
     if (stats) {
-      stats.totalUploads = Math.max(0, stats.totalUploads - 1);
+      // SIMPLIFIED/CONSOLIDATED STATS DECREMENT
+      const decrements = getUploadCountersToIncrement(file.fileType);
 
-      // Decrement specific counters based on file type (using MIME type matching)
-      if (file.fileType === "application/pdf") {
-        // Only decrement PDF total count. Current cycle credits are unaffected by deletion.
-        stats.pdfUploadsTotal = Math.max(0, stats.pdfUploadsTotal - 1);
-        stats.pdfUploads = Math.max(0, stats.pdfUploads - 1);
-      } else if (file.fileType.includes("wordprocessingml")) {
-        stats.docxUploads = Math.max(0, stats.docxUploads - 1);
-      } else if (file.fileType.includes("spreadsheetml")) {
-        // Correct counter retained for XLSX/Spreadsheets
-        stats.xlsxUploads = Math.max(0, stats.xlsxUploads - 1);
-      } else if (file.fileType.startsWith("image/")) {
-        stats.imageUploads = Math.max(0, stats.imageUploads - 1);
-      } else if (
-        file.fileType.startsWith("text/") ||
-        file.fileType.includes("xml") ||
-        file.fileType.includes("json") ||
-        file.fileType.includes("sql")
-      ) {
-        // Correct counter for all non-document text/structured files
-        stats.textUploads = Math.max(0, stats.textUploads - 1);
-      } else {
-        stats.otherUploads = Math.max(0, stats.otherUploads - 1);
+      // We only want to decrement the relevant counters
+      for (const key in decrements) {
+        // Find the counter key and ensure it exists before decrementing
+        if (stats[key] !== undefined) {
+          stats[key] = Math.max(0, stats[key] - 1);
+        }
       }
 
       await stats.save();

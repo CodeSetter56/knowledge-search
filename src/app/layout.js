@@ -1,3 +1,5 @@
+// src/app/layout.js
+
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"; // Import from sonner
@@ -13,7 +15,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         {children}
-        <Toaster position="bottom-center" /> {/* Add Toaster here */}
+        <Toaster position="top-center" />
       </body>
     </html>
   );

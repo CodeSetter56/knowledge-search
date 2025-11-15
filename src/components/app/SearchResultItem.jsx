@@ -1,3 +1,5 @@
+// src/components/app/SearchResultItem.jsx
+
 import { useState } from "react";
 import {
   FaFilePdf,
@@ -12,66 +14,58 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { formatDate, getPdfPageCount } from "@/lib/utils";
 
-export function SearchResultItem({ file, onDelete }) {
+// ⬇️ LOCAL HELPER FUNCTION (Contains JSX, must stay local) ⬇️
+function getFileIcon(file) {
+  if (file.fileType.includes("pdf"))
+    return <FaFilePdf className="text-red-500" size={24} />;
+
+  // Group 1: Documents/General Text (DOCX, TXT)
+  if (file.fileType.includes("wordprocessingml"))
+    return <FaFileWord className="text-blue-500" size={24} />;
+
+  if (file.fileType === "text/plain")
+    return <FaFileAlt className="text-gray-500" size={24} />;
+
+  // Group 2: Structured/Data Files
+  if (file.fileType.includes("spreadsheetml"))
+    return <FaFileExcel className="text-green-500" size={24} />;
+
+  if (
+    file.fileType.includes("xml") ||
+    file.fileType.includes("json") ||
+    file.fileType.includes("sql") ||
+    file.fileType.includes("csv")
+  ) {
+    // Use code icon for all structured/markup text types
+    return <FaFileCode className="text-purple-500" size={24} />;
+  }
+
+  if (file.fileType.startsWith("image/"))
+    return (
+      // Display image preview if path exists, otherwise generic image icon
+      file.path ? (
+        <img
+          src={file.path}
+          alt={file.filename}
+          className="w-8 h-8 object-cover rounded"
+        />
+      ) : (
+        <FaImage className="text-pink-500" size={24} />
+      )
+    );
+
+  // Default fallback (for 'other' category)
+  return <FaFileAlt className="text-gray-500" size={24} />;
+}
+// ⬆️ END OF LOCAL HELPER FUNCTION ⬆️
+
+export function SearchResultItem({ file, onDelete, onStatsUpdate }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Pick correct icon depending on file type
-  const getIcon = () => {
-    if (file.fileType.includes("pdf"))
-      return <FaFilePdf className="text-red-500" size={24} />;
-
-    // Group 1: Documents/General Text (DOCX, TXT)
-    if (file.fileType.includes("wordprocessingml"))
-      return <FaFileWord className="text-blue-500" size={24} />;
-
-    if (file.fileType === "text/plain")
-      return <FaFileAlt className="text-gray-500" size={24} />;
-
-    // Group 2: Structured/Data Files
-    if (file.fileType.includes("spreadsheetml"))
-      return <FaFileExcel className="text-green-500" size={24} />;
-
-    if (
-      file.fileType.includes("xml") ||
-      file.fileType.includes("json") ||
-      file.fileType.includes("sql") ||
-      file.fileType.includes("csv")
-    ) {
-      // Use code icon for all structured/markup text types
-      return <FaFileCode className="text-purple-500" size={24} />;
-    }
-
-    if (file.fileType.startsWith("image/"))
-      return (
-        // Display image preview if path exists, otherwise generic image icon
-        file.path ? (
-          <img
-            src={file.path}
-            alt={file.filename}
-            className="w-8 h-8 object-cover rounded"
-          />
-        ) : (
-          <FaImage className="text-pink-500" size={24} />
-        )
-      );
-
-    // Default fallback (for 'other' category)
-    return <FaFileAlt className="text-gray-500" size={24} />;
-  };
-
-  // Extract page count for PDFs
-  const getPageCount = () => {
-    if (file.fileType.includes("pdf")) {
-      const match = file.scannedText?.match(/\((\d+) page/);
-      if (match) return match[1];
-
-      const pageTag = file.tags?.find((t) => t.includes("-pages"));
-      if (pageTag) return pageTag.split("-")[0];
-    }
-    return null;
-  };
+  const getIcon = () => getFileIcon(file);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -83,15 +77,17 @@ export function SearchResultItem({ file, onDelete }) {
     }
 
     const toastId = toast.loading(`Deleting ${file.filename}...`);
+    let responseData = null;
 
     try {
       const response = await fetch(`/api/delete?id=${file._id}`, {
         method: "DELETE",
       });
 
+      responseData = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to delete");
+        throw new Error(responseData.error || "Failed to delete");
       }
 
       toast.success(`${file.filename} deleted successfully!`, { id: toastId });
@@ -101,26 +97,32 @@ export function SearchResultItem({ file, onDelete }) {
         onDelete(file._id);
       }
 
+      // Update stats immediately
+      if (onStatsUpdate && responseData.stats) {
+        onStatsUpdate(responseData.stats);
+      }
+
       // Only reset confirmation state on SUCCESS
       setShowConfirm(false);
     } catch (error) {
       console.error("[SearchResultItem] Delete failed:", error);
-      toast.error(`Failed to delete: ${error.message}`, { id: toastId });
+      const credits = responseData?.stats?.pdfCreditsRemaining;
+      if (credits !== undefined) {
+        toast.error(
+          `Failed to delete: ${error.message} (PDF scans left: ${credits})`,
+          { id: toastId }
+        );
+      } else {
+        toast.error(`Failed to delete: ${error.message}`, { id: toastId });
+      }
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const pageCount = getPageCount();
-
-  // Check if file.uploadDate exists before formatting
-  const uploadDate = file.uploadDate
-    ? new Date(file.uploadDate).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
-    : "N/A";
+  // USE IMPORTED UTILITIES
+  const pageCount = getPdfPageCount(file);
+  const uploadDate = formatDate(file.uploadDate);
 
   return (
     <Card>

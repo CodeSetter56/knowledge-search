@@ -1,3 +1,5 @@
+// src/app/page.js
+
 "use client";
 
 import { useFileStats } from "@/hooks/useFileStats";
@@ -12,7 +14,7 @@ import { ResultsList } from "@/components/app/ResultsList";
 
 export default function Home() {
   // Custom hook to fetch stats on load
-  const { stats } = useFileStats();
+  const { stats, setStats } = useFileStats();
 
   // Custom hook for all search-related state and logic
   const {
@@ -34,11 +36,16 @@ export default function Home() {
       onUploadSuccess: (newFile) => {
         setSearchResults((prev) => [newFile, ...prev]);
       },
+      // New callback to update stats state
+      onStatsUpdate: (newStats) => {
+        setStats(newStats);
+      },
     });
 
   // Handle file deletion
   const handleDelete = (fileId) => {
     setSearchResults((prev) => prev.filter((file) => file._id !== fileId));
+    // Stats update on delete is handled by passing setStats to ResultsList
   };
 
   return (
@@ -78,6 +85,7 @@ export default function Home() {
         searchResults={searchResults}
         isSearching={isSearching}
         onDelete={handleDelete}
+        onStatsUpdate={setStats} // Pass setStats down for delete operation
       />
     </div>
   );

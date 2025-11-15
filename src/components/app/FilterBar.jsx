@@ -1,17 +1,10 @@
+// src/components/app/FilterBar.jsx
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { FaFilter, FaTimes } from "react-icons/fa";
-
-// Simplified to use short keys that map to the final, distinct logical groups
-export const FILE_TYPE_FILTERS = [
-  { value: "all", label: "All Types" },
-  { value: "pdf", label: "PDFs" },
-  { value: "documents-text", label: "Documents (DOCX/TXT)" }, // Files stored in 'texts' folder
-  { value: "structured-data", label: "Structured Data (XLSX/JSON/SQL)" }, // Files stored in 'structured' folder
-  { value: "image", label: "Images" },
-  { value: "other", label: "Other" },
-];
+import { FILE_TYPE_FILTERS } from "@/lib/utils";
 
 export function FilterBar({ filters, updateFilters, resetFilters }) {
   const hasActiveFilters =

@@ -1,3 +1,5 @@
+// src/app/api/upload/route.js
+
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
@@ -5,61 +7,13 @@ import dbConnect from "@/lib/mongodb";
 import File from "@/lib/models/file.model";
 import Stats from "@/lib/models/stats.model";
 import { analyzeFile } from "@/lib/services/analyzer.service";
+import {
+  getFileCategory,
+  getUploadCountersToIncrement,
+  MIME_TYPE_MAP,
+} from "@/lib/utils";
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-
-// Determine subfolder based on file type. Segregate general text from structured data.
-function getSubfolder(fileType) {
-  if (fileType === "application/pdf") return "pdfs";
-  if (fileType.startsWith("image/")) return "images";
-
-  // Group 1: Documents/General Text (DOCX, Plain TXT) -> texts folder
-  if (
-    fileType.includes("wordprocessingml") || // DOCX
-    fileType.startsWith("text/plain")
-  ) {
-    return "texts";
-  }
-
-  // Group 2: Structured/Data Files (XLSX, JSON, SQL, XML, CSV, etc.) -> structured folder
-  if (
-    fileType.includes("spreadsheetml") || // XLSX
-    fileType.includes("json") ||
-    fileType.includes("xml") ||
-    fileType.includes("sql") ||
-    fileType.includes("csv") ||
-    // Catch other general text types that are often structured/markup
-    (fileType.startsWith("text/") && fileType !== "text/plain")
-  ) {
-    return "structured";
-  }
-
-  return "other";
-}
-
-// Determine what kind of file was uploaded - Counters remain distinct for stats tracking.
-function getUploadTypeCounters(fileType) {
-  // Return an object that shows which counter to increment by 1
-  if (fileType === "application/pdf") return {}; // PDFs are handled separately for credits
-  if (fileType.includes("wordprocessingml"))
-    return { docxUploads: 1, totalUploads: 1 };
-  if (fileType.includes("spreadsheetml"))
-    return { xlsxUploads: 1, totalUploads: 1 };
-  if (fileType.startsWith("image/"))
-    return { imageUploads: 1, totalUploads: 1 };
-
-  // Count all other text/structured files as textUploads
-  if (
-    fileType.startsWith("text/") ||
-    fileType.includes("xml") ||
-    fileType.includes("json") ||
-    fileType.includes("sql") ||
-    fileType.includes("csv")
-  ) {
-    return { textUploads: 1, totalUploads: 1 };
-  }
-  return { otherUploads: 1, totalUploads: 1 };
-}
 
 // 30-day rolling credit system for PDFs
 function processCreditCycle(stats) {
@@ -99,7 +53,7 @@ export async function POST(req) {
     const uniqueName = uniqueId + "-" + safeFilename;
 
     // Determine subfolder and path
-    const subfolder = getSubfolder(fileType);
+    const subfolder = getFileCategory(fileType);
     const uploadDir = path.join(process.cwd(), "public", "uploads", subfolder);
 
     // Create directory if it doesn't exist
@@ -127,7 +81,7 @@ export async function POST(req) {
     };
 
     // Check PDF credit limit BEFORE calling analyzeFile for PDFs
-    const isPDF = fileType === "application/pdf";
+    const isPDF = fileType === MIME_TYPE_MAP.PDF;
     if (isPDF && stats.pdfCreditsRemaining <= 0) {
       analysis.summary =
         "PDF not scanned. Monthly credit limit reached. File saved to disk and indexed by filename/type.";
@@ -144,15 +98,9 @@ export async function POST(req) {
     }
 
     // Update general stats
-    if (isPDF) {
-      // Always count total PDF uploads
-      stats.pdfUploads += 1;
-      stats.pdfUploadsTotal += 1;
-    } else {
-      // For non-PDFs
-      stats.totalUploads += 1;
-      const inc = getUploadTypeCounters(fileType);
-      for (const key in inc) {
+    const inc = getUploadCountersToIncrement(fileType);
+    for (const key in inc) {
+      if (stats[key] !== undefined) {
         stats[key] += inc[key];
       }
     }

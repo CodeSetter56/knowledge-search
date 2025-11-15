@@ -24,5 +24,5 @@ export function useFileStats() {
     fetchStats();
   }, []);
 
-  return { stats };
+  return { stats, setStats };
 }

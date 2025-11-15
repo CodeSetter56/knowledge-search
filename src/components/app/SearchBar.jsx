@@ -1,3 +1,5 @@
+// src/components/app/SearchBar.jsx
+
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +12,7 @@ export function SearchBar({
 }) {
   const handleClear = () => {
     setSearchQuery("");
-    // Trigger a new search with an empty query to refresh results
-    // Pass a mock object as the event to satisfy handleSearch's expected signature
+    // Clears query and triggers a new search to show all documents
     handleSearch({ preventDefault: () => {} });
   };
 
@@ -26,6 +27,7 @@ export function SearchBar({
           // Added padding-right for clear button clearance
           className="w-full rounded-r-none text-base pr-10"
           disabled={isSearching}
+          onFocus={(e) => e.target.select()} // Auto-select text on focus
         />
         {/* Clear Button */}
         {searchQuery && (

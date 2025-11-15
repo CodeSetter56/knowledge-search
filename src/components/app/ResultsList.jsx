@@ -1,6 +1,13 @@
+// src/components/app/ResultsList.jsx
+
 import { SearchResultItem } from "./SearchResultItem";
 
-export function ResultsList({ searchResults, isSearching, onDelete }) {
+export function ResultsList({
+  searchResults,
+  isSearching,
+  onDelete,
+  onStatsUpdate,
+}) {
   if (isSearching) {
     return (
       <div className="space-y-4">
@@ -28,7 +35,12 @@ export function ResultsList({ searchResults, isSearching, onDelete }) {
   return (
     <div className="space-y-4">
       {searchResults.map((file) => (
-        <SearchResultItem key={file._id} file={file} onDelete={onDelete} />
+        <SearchResultItem
+          key={file._id}
+          file={file}
+          onDelete={onDelete}
+          onStatsUpdate={onStatsUpdate}
+        />
       ))}
     </div>
   );
