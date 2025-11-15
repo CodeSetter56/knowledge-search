@@ -3,26 +3,19 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { FaFilter, FaTimes } from "react-icons/fa";
 
+// Simplified to use short keys that map to the final, distinct logical groups
+export const FILE_TYPE_FILTERS = [
+  { value: "all", label: "All Types" },
+  { value: "pdf", label: "PDFs" },
+  { value: "documents-text", label: "Documents (DOCX/TXT)" }, // Files stored in 'texts' folder
+  { value: "structured-data", label: "Structured Data (XLSX/JSON/SQL)" }, // Files stored in 'structured' folder
+  { value: "image", label: "Images" },
+  { value: "other", label: "Other" },
+];
+
 export function FilterBar({ filters, updateFilters, resetFilters }) {
   const hasActiveFilters =
     filters.fileType !== "all" || filters.dateFrom || filters.dateTo;
-
-  const fileTypes = [
-    { value: "all", label: "All Types" },
-    { value: "application/pdf", label: "PDF" },
-    {
-      value:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      label: "Word",
-    },
-    {
-      value:
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      label: "Excel",
-    },
-    { value: "image", label: "Images" },
-    { value: "text", label: "Text" },
-  ];
 
   return (
     <div className="mb-6 p-4 bg-secondary/30 rounded-lg border">
@@ -47,7 +40,7 @@ export function FilterBar({ filters, updateFilters, resetFilters }) {
             onChange={(e) => updateFilters({ fileType: e.target.value })}
             className="flex h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus:border-ring focus:ring-ring/50 focus:ring-[3px] dark:bg-input/30"
           >
-            {fileTypes.map((type) => (
+            {FILE_TYPE_FILTERS.map((type) => (
               <option key={type.value} value={type.value}>
                 {type.label}
               </option>

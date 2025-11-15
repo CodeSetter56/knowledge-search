@@ -19,11 +19,20 @@ export function useFileSearch() {
   const fetchFiles = async (customFilters = {}) => {
     setIsSearching(true);
 
-    const activeFilters = { ...filters, ...customFilters };
+    const activeFilters = {
+      ...filters,
+      ...customFilters,
+    };
+
+    // Determine the current query to use: allow passing 'q' via customFilters
+    const currentQuery =
+      customFilters.q !== undefined ? customFilters.q : searchQuery;
+
     const params = new URLSearchParams();
 
-    if (searchQuery.trim()) {
-      params.append("q", searchQuery);
+    // Use currentQuery here
+    if (currentQuery.trim()) {
+      params.append("q", currentQuery);
     }
     if (activeFilters.fileType !== "all") {
       params.append("fileType", activeFilters.fileType);
@@ -50,13 +59,17 @@ export function useFileSearch() {
   };
 
   const handleSearch = async (e) => {
-    e.preventDefault();
+    // Only call preventDefault if an event object is provided (i.e., a form submit)
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
     fetchFiles();
   };
 
   const updateFilters = (newFilters) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
-    fetchFiles(newFilters);
+    // Pass current query and new filters to fetchFiles
+    fetchFiles({ ...filters, q: searchQuery, ...newFilters });
   };
 
   const resetFilters = () => {
@@ -67,7 +80,8 @@ export function useFileSearch() {
     };
     setFilters(defaultFilters);
     setSearchQuery("");
-    fetchFiles(defaultFilters);
+    // Pass empty query and default filters to trigger fetch
+    fetchFiles({ q: "", ...defaultFilters });
   };
 
   return {

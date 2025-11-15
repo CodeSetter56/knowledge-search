@@ -6,6 +6,7 @@ import {
   FaFileExcel,
   FaFileCode,
   FaTrash,
+  FaImage,
 } from "react-icons/fa";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,27 +22,42 @@ export function SearchResultItem({ file, onDelete }) {
     if (file.fileType.includes("pdf"))
       return <FaFilePdf className="text-red-500" size={24} />;
 
-    if (file.fileType.includes("word"))
+    // Group 1: Documents/General Text (DOCX, TXT)
+    if (file.fileType.includes("wordprocessingml"))
       return <FaFileWord className="text-blue-500" size={24} />;
 
-    if (file.fileType.includes("spreadsheet"))
-      return <FaFileExcel className="text-green-500" size={24} />;
-
-    if (file.fileType.startsWith("image"))
-      return (
-        <img
-          src={file.path}
-          alt={file.filename}
-          className="w-8 h-8 object-cover rounded"
-        />
-      );
-
-    if (file.fileType.startsWith("text/"))
+    if (file.fileType === "text/plain")
       return <FaFileAlt className="text-gray-500" size={24} />;
 
-    if (file.fileType.includes("xml") || file.fileType.includes("json"))
-      return <FaFileCode className="text-purple-500" size={24} />;
+    // Group 2: Structured/Data Files
+    if (file.fileType.includes("spreadsheetml"))
+      return <FaFileExcel className="text-green-500" size={24} />;
 
+    if (
+      file.fileType.includes("xml") ||
+      file.fileType.includes("json") ||
+      file.fileType.includes("sql") ||
+      file.fileType.includes("csv")
+    ) {
+      // Use code icon for all structured/markup text types
+      return <FaFileCode className="text-purple-500" size={24} />;
+    }
+
+    if (file.fileType.startsWith("image/"))
+      return (
+        // Display image preview if path exists, otherwise generic image icon
+        file.path ? (
+          <img
+            src={file.path}
+            alt={file.filename}
+            className="w-8 h-8 object-cover rounded"
+          />
+        ) : (
+          <FaImage className="text-pink-500" size={24} />
+        )
+      );
+
+    // Default fallback (for 'other' category)
     return <FaFileAlt className="text-gray-500" size={24} />;
   };
 
@@ -59,6 +75,13 @@ export function SearchResultItem({ file, onDelete }) {
 
   const handleDelete = async () => {
     setIsDeleting(true);
+
+    if (!file || !file._id) {
+      toast.error("File information missing for deletion.");
+      setIsDeleting(false);
+      return;
+    }
+
     const toastId = toast.loading(`Deleting ${file.filename}...`);
 
     try {
@@ -77,21 +100,27 @@ export function SearchResultItem({ file, onDelete }) {
       if (onDelete) {
         onDelete(file._id);
       }
+
+      // Only reset confirmation state on SUCCESS
+      setShowConfirm(false);
     } catch (error) {
       console.error("[SearchResultItem] Delete failed:", error);
       toast.error(`Failed to delete: ${error.message}`, { id: toastId });
     } finally {
       setIsDeleting(false);
-      setShowConfirm(false);
     }
   };
 
   const pageCount = getPageCount();
-  const uploadDate = new Date(file.uploadDate).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+
+  // Check if file.uploadDate exists before formatting
+  const uploadDate = file.uploadDate
+    ? new Date(file.uploadDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "N/A";
 
   return (
     <Card>
@@ -135,6 +164,8 @@ export function SearchResultItem({ file, onDelete }) {
                 size="sm"
                 onClick={handleDelete}
                 disabled={isDeleting}
+                // FIX: Aggressively force background and text color to ensure visibility
+                className="bg-red-500! text-white! hover:bg-red-600!"
               >
                 {isDeleting ? "..." : "Delete"}
               </Button>
@@ -153,7 +184,9 @@ export function SearchResultItem({ file, onDelete }) {
 
       <CardContent>
         {/* Summary */}
-        <p className="text-sm text-muted-foreground mb-3">{file.summary}</p>
+        <p className="text-sm text-muted-foreground mb-3">
+          {file.summary || "No summary available."}
+        </p>
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2">

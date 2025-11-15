@@ -27,25 +27,29 @@ export async function DELETE(req) {
 
     // Delete the physical file
     try {
+      // The file.path is the relative path (e.g., /uploads/structured/...)
       const filePath = path.join(process.cwd(), "public", file.path);
       await unlink(filePath);
       console.log(`[delete] Physical file deleted: ${filePath}`);
     } catch (err) {
       console.error("[delete] Error deleting physical file:", err);
-      // Continue even if physical file deletion fails
+      // Continue even if physical file deletion fails (file might have been manually deleted)
     }
 
-    // Update stats
+    // Update stats based on fileType
     let stats = await Stats.findOne({ _id: "global-stats" });
     if (stats) {
       stats.totalUploads = Math.max(0, stats.totalUploads - 1);
 
-      // Decrement specific counters based on file type
+      // Decrement specific counters based on file type (using MIME type matching)
       if (file.fileType === "application/pdf") {
+        // Only decrement PDF total count. Current cycle credits are unaffected by deletion.
         stats.pdfUploadsTotal = Math.max(0, stats.pdfUploadsTotal - 1);
+        stats.pdfUploads = Math.max(0, stats.pdfUploads - 1);
       } else if (file.fileType.includes("wordprocessingml")) {
         stats.docxUploads = Math.max(0, stats.docxUploads - 1);
       } else if (file.fileType.includes("spreadsheetml")) {
+        // Correct counter retained for XLSX/Spreadsheets
         stats.xlsxUploads = Math.max(0, stats.xlsxUploads - 1);
       } else if (file.fileType.startsWith("image/")) {
         stats.imageUploads = Math.max(0, stats.imageUploads - 1);
@@ -55,6 +59,7 @@ export async function DELETE(req) {
         file.fileType.includes("json") ||
         file.fileType.includes("sql")
       ) {
+        // Correct counter for all non-document text/structured files
         stats.textUploads = Math.max(0, stats.textUploads - 1);
       } else {
         stats.otherUploads = Math.max(0, stats.otherUploads - 1);
