@@ -1,5 +1,3 @@
-// src/app/page.js
-
 "use client";
 
 import { useFileStats } from "@/hooks/useFileStats";
@@ -9,6 +7,7 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 import { StatsDisplay } from "@/components/app/StatsDisplay";
 import { UploadDropzone } from "@/components/app/UploadDropzone";
 import { SearchBar } from "@/components/app/SearchBar";
+import { FilterBar } from "@/components/app/FilterBar";
 import { ResultsList } from "@/components/app/ResultsList";
 
 export default function Home() {
@@ -23,6 +22,9 @@ export default function Home() {
     isSearching,
     handleSearch,
     setSearchResults,
+    filters,
+    updateFilters,
+    resetFilters,
   } = useFileSearch();
 
   // Custom hook for all upload-related state and logic
@@ -34,8 +36,13 @@ export default function Home() {
       },
     });
 
+  // Handle file deletion
+  const handleDelete = (fileId) => {
+    setSearchResults((prev) => prev.filter((file) => file._id !== fileId));
+  };
+
   return (
-    <div className="container mx-auto p-4 md:p-8 max-w-4xl">
+    <div className="container mx-auto p-4 md:p-8 max-w-6xl">
       <StatsDisplay stats={stats} />
 
       <h1 className="text-4xl font-bold text-center mb-4">Mar-Intel Search</h1>
@@ -43,7 +50,7 @@ export default function Home() {
         Upload, analyze, and search all your marketing assets.
       </p>
 
-      {/* The Upload component now gets its props from the hook */}
+      {/* Upload Dropzone */}
       <UploadDropzone
         getRootProps={getRootProps}
         getInputProps={getInputProps}
@@ -51,7 +58,7 @@ export default function Home() {
         isUploading={isUploading}
       />
 
-      {/* The Search component gets its props from its hook */}
+      {/* Search Bar */}
       <SearchBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -59,8 +66,19 @@ export default function Home() {
         isSearching={isSearching}
       />
 
-      {/* The Results component is now self-contained */}
-      <ResultsList searchResults={searchResults} isSearching={isSearching} />
+      {/* Filter Bar */}
+      <FilterBar
+        filters={filters}
+        updateFilters={updateFilters}
+        resetFilters={resetFilters}
+      />
+
+      {/* Results List */}
+      <ResultsList
+        searchResults={searchResults}
+        isSearching={isSearching}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }
