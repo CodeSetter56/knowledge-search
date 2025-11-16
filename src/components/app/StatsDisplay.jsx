@@ -1,11 +1,8 @@
-// src/components/app/StatsDisplay.jsx
-
 import { cn } from "@/lib/utils";
 
-// Removed displayTotalFiles prop
 export function StatsDisplay({ stats, isHome = false }) {
+
   if (!stats) {
-    // Adjust color for navbar context
     return (
       <div
         className={cn(
@@ -23,7 +20,6 @@ export function StatsDisplay({ stats, isHome = false }) {
     ? "text-white/80"
     : "text-muted-foreground";
 
-  // Now consistently shows the global system total (stats.totalUploads)
   const totalFilesCount = stats.totalUploads;
   const totalFilesLabel = "Total Files";
 
@@ -38,6 +34,7 @@ export function StatsDisplay({ stats, isHome = false }) {
         {totalFilesLabel}:{" "}
         <strong className={textColorClass}>{totalFilesCount}</strong>
       </span>
+
       <span>
         PDF Scan Credits:{" "}
         <strong className={textColorClass}>{stats.pdfCreditsRemaining}</strong>

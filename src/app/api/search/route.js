@@ -5,8 +5,10 @@ import { getFileTypeFilterQuery } from "@/lib/utils";
 
 export async function GET(req) {
   try {
+
     await dbConnect();
 
+    // 2. Extract query parameters from the request URL
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q");
     const fileType = searchParams.get("fileType");
@@ -15,7 +17,7 @@ export async function GET(req) {
 
     let results;
 
-    // --- Build common filters (for both search and find) ---
+    // custom date filter used during search or filter
     const dateFilter = {};
     if (dateFrom || dateTo) {
       dateFilter.uploadDate = {};
@@ -28,31 +30,26 @@ export async function GET(req) {
       }
     }
 
-    // Convert simple filter key to MongoDB query fragment
+    // Convert simple filter key to MongoDB query 
     const typeFilter =
       fileType && fileType !== "all" ? getFileTypeFilterQuery(fileType) : {};
-
-    // Combine all filters
+    // Combine all non-search filters
     const matchFilters = { ...typeFilter, ...dateFilter };
 
-    // If there's a search query, use Atlas Search
+    // 3. Perform search or direct query
     if (query && query.trim()) {
+
       const searchPipeline = [
         {
           $search: {
-            index: "searchFiles",
+            index: "searchFiles", // Atlas Search Index name
             compound: {
               should: [
-                {
-                  autocomplete: { query: query, path: "filename" },
-                },
-                {
-                  autocomplete: { query: query, path: "summary" },
-                },
-                {
-                  autocomplete: { query: query, path: "tags" },
-                },
-                // Add a text search for the full scanned document content
+                // Autocomplete fields
+                { autocomplete: { query: query, path: "filename" } },
+                { autocomplete: { query: query, path: "summary" } },
+                { autocomplete: { query: query, path: "tags" } },
+                // Text search for the full scanned document content (lower boost)
                 {
                   text: {
                     query: query,
@@ -67,11 +64,12 @@ export async function GET(req) {
         },
       ];
 
-      // Apply the date and type filters AFTER the search
+      // Apply selected filters
       if (Object.keys(matchFilters).length > 0) {
         searchPipeline.push({ $match: matchFilters });
       }
 
+      // select only necessary fields
       searchPipeline.push({ $limit: 100 });
       searchPipeline.push({
         $project: {
@@ -86,15 +84,15 @@ export async function GET(req) {
       });
 
       results = await File.aggregate(searchPipeline);
+
     } else {
-      // No query - return all files with filters
       results = await File.find(matchFilters)
         .sort({ uploadDate: -1 }) // Sort by newest first
         .limit(100)
         .select("_id filename path fileType summary tags uploadDate");
     }
 
-    // Ensure file paths are strings before sending response
+    // 4. Format and return results
     const cleanedResults = results.map((r) => ({
       _id: r._id.toString(),
       filename: r.filename,
@@ -106,6 +104,7 @@ export async function GET(req) {
     }));
 
     return NextResponse.json(cleanedResults);
+    
   } catch (error) {
     console.error("[search/GET] Error:", error);
     return NextResponse.json(

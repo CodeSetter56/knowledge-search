@@ -3,10 +3,14 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
+// Custom hook to fetch and manage global application statistics
 export function useFileStats() {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
+    /**
+     * Fetches the global stats object from the API.
+     */
     async function fetchStats() {
       try {
         console.log("[useFileStats] Fetching initial stats...");
@@ -22,7 +26,7 @@ export function useFileStats() {
       }
     }
     fetchStats();
-  }, []);
+  }, []); // Run only once on component mount
 
   return { stats, setStats };
 }

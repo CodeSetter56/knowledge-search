@@ -1,36 +1,37 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-
+// Custom hook for managing search state, filters, and fetching file results
 export function useFileSearch() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+
   const [filters, setFilters] = useState({
     fileType: "all",
     dateFrom: "",
     dateTo: "",
   });
 
-  // Fetch all files on mount
   useEffect(() => {
     fetchFiles();
   }, []);
 
+
   const fetchFiles = async (customFilters = {}) => {
     setIsSearching(true);
 
+    // all filters
     const activeFilters = {
       ...filters,
       ...customFilters,
     };
 
-    // Determine the current query to use: allow passing 'q' via customFilters
+    // q from req.url
     const currentQuery =
       customFilters.q !== undefined ? customFilters.q : searchQuery;
 
+    // Build URL search parameters
     const params = new URLSearchParams();
-
-    // Use currentQuery here
     if (currentQuery.trim()) {
       params.append("q", currentQuery);
     }
@@ -50,6 +51,7 @@ export function useFileSearch() {
 
       const results = await response.json();
       setSearchResults(results);
+
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch files.");
@@ -59,7 +61,6 @@ export function useFileSearch() {
   };
 
   const handleSearch = async (e) => {
-    // Only call preventDefault if an event object is provided (i.e., a form submit)
     if (e && e.preventDefault) {
       e.preventDefault();
     }
@@ -68,7 +69,7 @@ export function useFileSearch() {
 
   const updateFilters = (newFilters) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
-    // Pass current query and new filters to fetchFiles
+    // Pass current query and new filters to trigger the fetch
     fetchFiles({ ...filters, q: searchQuery, ...newFilters });
   };
 

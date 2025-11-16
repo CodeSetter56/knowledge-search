@@ -1,11 +1,11 @@
-// src/app/files/page.js
-
 "use client";
 
 import { useState, useCallback } from "react";
+
 import { useFileStats } from "@/hooks/useFileStats";
 import { useFileSearch } from "@/hooks/useFileSearch";
 import { useFileUpload } from "@/hooks/useFileUpload";
+
 import { SearchBar } from "@/components/app/SearchBar";
 import { FilterBar } from "@/components/app/FilterBar";
 import { ResultsList } from "@/components/app/ResultsList";
@@ -14,9 +14,11 @@ import { FileSidebar } from "@/components/app/FileSidebar";
 import { toast } from "sonner";
 
 export default function FileSearchPage() {
+
   const [selectedFile, setSelectedFile] = useState(null);
   const { stats, setStats } = useFileStats();
 
+  // search and result hooks
   const {
     searchResults,
     setSearchResults,
@@ -29,9 +31,10 @@ export default function FileSearchPage() {
     resetFilters,
   } = useFileSearch();
 
-  // Use the hook to get handlers. We manually manage the drop zone visualization.
+  // upload hooks
   const { isUploading, getRootProps, getInputProps, isDragActive } =
     useFileUpload({
+      // update local state after upload
       onUploadSuccess: (newFile) => {
         setSearchResults((prev) => [newFile, ...prev]);
         toast.success(`${newFile.filename} uploaded successfully!`);
@@ -61,21 +64,21 @@ export default function FileSearchPage() {
 
   return (
     <div className="flex flex-col h-screen w-full">
-      {/* Dropzone functionality overlay (Only active on drag, prevents file dialog on click) */}
+      {/* Dropzone Overlay: Used for drag-and-drop visualization and handling */}
       <div
         {...getRootProps({
-          // Disable the built-in click action that opens the file dialog
+          // Disable the default dropzone click to prevent file dialog from opening on page click
           onClick: (e) => e.stopPropagation(),
         })}
         className="fixed inset-0"
         style={{
-          zIndex: isDragActive ? 999 : -1,
+          zIndex: isDragActive ? 999 : -1, // High z-index when dragging
           pointerEvents: isDragActive ? "auto" : "none",
         }}
       >
         <input {...getInputProps()} />
+        {/* Visual indicator when a file is actively being dragged over the window */}
         {isDragActive && (
-          // Only show the visual indicator when dragging a file
           <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
             <p className="text-white text-2xl font-bold">
               Drop file to upload...
@@ -84,28 +87,21 @@ export default function FileSearchPage() {
         )}
       </div>
 
-      {/* Navbar/Header (Fixed Top) */}
+      {/* Navbar/Header */}
       <header
         className={`p-4 flex justify-between items-center shrink-0 ${HEADER_COLOR}`}
       >
         <a href="/" className="text-xl font-bold">
-          Home Brand
+          KBS
         </a>
-        {/* FIX: Removed displayTotalFiles prop so it always shows the system total (stats.totalUploads) */}
+        {/* Displays total files and PDF scan credits */}
         <StatsDisplay stats={stats} isHome={true} />
       </header>
 
       {/* Main Content Wrapper */}
       <main className="flex-1 flex flex-col p-4 md:p-8 w-full max-w-6xl mx-auto overflow-hidden">
         {/* Title and fixed controls (Search/Filters) */}
-        <div className="shrink-0">
-          <h1 className="text-4xl font-bold text-center mb-2 text-gray-900 dark:text-white">
-            Knowledge Search
-          </h1>
-          <p className="text-center text-muted-foreground mb-6">
-            Search and manage your uploaded assets.
-          </p>
-
+        <div className="px-8 pb-4 pt-2">
           <SearchBar
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -120,7 +116,7 @@ export default function FileSearchPage() {
         </div>
 
         {/* Results List (Scrollable Area) */}
-        <div className="flex-1 overflow-y-auto pt-4 -mt-2">
+        <div className="flex-1 overflow-y-auto pt-4 -mt-2 bg-amber-50 rounded-2xl">
           <ResultsList
             searchResults={searchResults}
             isSearching={isSearching || isUploading}
@@ -129,7 +125,7 @@ export default function FileSearchPage() {
         </div>
       </main>
 
-      {/* Sidebar */}
+      {/* File Details Sidebar */}
       {selectedFile && (
         <FileSidebar
           file={selectedFile}

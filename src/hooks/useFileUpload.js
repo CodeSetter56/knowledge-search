@@ -1,5 +1,3 @@
-// src/hooks/useFileUpload.js
-
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
@@ -8,8 +6,9 @@ import { fileToBase64 } from "@/lib/utils";
 const PDF_MAX_SIZE_BYTES = 1024 * 1024; // 1 MB
 
 export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
+ 
   const [isUploading, setIsUploading] = useState(false);
-  const [lastUploadedFile, setLastUploadedFile] = useState(null); // NEW: Track last uploaded file
+  const [lastUploadedFile, setLastUploadedFile] = useState(null);
 
   const onDrop = useCallback(
     async (acceptedFiles) => {
@@ -28,15 +27,17 @@ export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
       console.log(`[useFileUpload] File Dropped: ${file.name}`);
 
       setIsUploading(true);
-      setLastUploadedFile(null); // Clear previous result on new upload start
+      setLastUploadedFile(null); // Clear previous upload 
       const toastId = toast.loading(`Uploading ${file.name}...`);
       let responseData = null;
 
       try {
+        // encode file to Base64
         toast.loading(`Encoding ${file.name}...`, { id: toastId });
         const fileBase64 = await fileToBase64(file);
         console.log("[useFileUpload] File encoded.");
 
+        // send file to API for processing
         toast.loading(`Analyzing ${file.name}...`, { id: toastId });
         const response = await fetch("/api/upload", {
           method: "POST",
@@ -55,19 +56,15 @@ export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
         console.log("[useFileUpload] Success:", responseData);
 
         const newFile = responseData.newFile;
-        setLastUploadedFile(newFile); // Save the successfully uploaded file
+        setLastUploadedFile(newFile); 
 
-        // Call the success callback passed from the parent
         if (onUploadSuccess) {
           onUploadSuccess(newFile);
         }
-
-        // Update stats immediately
         if (onStatsUpdate) {
           onStatsUpdate(responseData.stats);
         }
 
-        // Handle success toast
         const credits = responseData.stats.pdfCreditsRemaining;
         if (newFile.fileType === "application/pdf") {
           toast.success(
@@ -79,6 +76,7 @@ export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
             id: toastId,
           });
         }
+
       } catch (error) {
         console.error("[useFileUpload] Upload failed:", error);
         if (responseData && responseData.stats) {
@@ -98,7 +96,8 @@ export function useFileUpload({ onUploadSuccess, onStatsUpdate }) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    multiple: false,
+    multiple: false, // Only accept one file at a time
+    // Define accepted MIME types
     accept: {
       "image/jpeg": [".jpeg", ".jpg"],
       "image/png": [".png"],

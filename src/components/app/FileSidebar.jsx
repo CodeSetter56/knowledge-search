@@ -24,6 +24,7 @@ export function FileSidebar({ file, onClose, onDelete, onStatsUpdate }) {
     const toastId = toast.loading(`Deleting ${file.filename} (Sidebar)...`);
 
     try {
+
       const response = await fetch(`/api/delete?id=${file._id}`, {
         method: "DELETE",
       });
@@ -33,13 +34,13 @@ export function FileSidebar({ file, onClose, onDelete, onStatsUpdate }) {
         throw new Error(responseData.error || "Failed to delete");
       }
 
-      // Call parent callbacks
       if (onDelete) onDelete(file._id);
       if (onStatsUpdate && responseData.stats)
         onStatsUpdate(responseData.stats);
 
       toast.success(`${file.filename} deleted successfully!`, { id: toastId });
-      onClose(); // Close the sidebar on success
+      onClose(); 
+      
     } catch (error) {
       console.error("[FileSidebar] Delete failed:", error);
       const credits = responseData?.stats?.pdfCreditsRemaining;
@@ -54,18 +55,15 @@ export function FileSidebar({ file, onClose, onDelete, onStatsUpdate }) {
     }
   };
 
-  // FIX: Destructure the returned object to get the icon and isImage
   const { icon: IconComponent, isImage } = getFileIcon(file);
 
   return (
-    // Overlay (click outside closes sidebar)
     <div className="fixed inset-0 bg-black/55 z-40" onClick={onClose}>
       <div
         className="fixed right-0 top-0 bottom-0 w-full md:w-96 bg-white border-l shadow-2xl z-50 overflow-y-auto"
-        onClick={(e) => e.stopPropagation()} // Prevent click from bubbling
+        onClick={(e) => e.stopPropagation()} // Prevent click from closing the sidebar
       >
         <Card className="rounded-none border-0 h-full flex flex-col p-0">
-          {/* Header with Close Button */}
           <CardHeader className="flex flex-row items-center justify-between p-4 border-b shrink-0">
             <CardTitle className="text-xl font-semibold">
               File Details
@@ -80,17 +78,15 @@ export function FileSidebar({ file, onClose, onDelete, onStatsUpdate }) {
             </Button>
           </CardHeader>
 
-          {/* 8. File Preview (Top Section) */}
-          <div className="p-4 flex flex-col items-center justify-center border-b shrink-0">
+          <div className="p-4 flex flex-col items-center justify-center border-b shrink-0 bg-amber-50">
             {isImage && file.path ? (
-              // Display image preview
               <img
                 src={file.path}
                 alt={file.filename}
                 className="max-h-48 w-full object-contain mb-4 border rounded"
               />
             ) : (
-              // Display generic icon
+              // generic file icon for non-image files
               <div className="p-8 border rounded-lg bg-secondary/30 mb-4">
                 {IconComponent}
               </div>
@@ -103,9 +99,7 @@ export function FileSidebar({ file, onClose, onDelete, onStatsUpdate }) {
             </span>
           </div>
 
-          {/* Summary and Tags (Scrollable Content) */}
           <CardContent className="flex-1 overflow-y-auto py-4 px-6 space-y-4">
-            {/* Summary */}
             <div>
               <CardTitle className="text-sm font-bold mb-2">Summary</CardTitle>
               <CardDescription className="text-sm">
@@ -113,7 +107,6 @@ export function FileSidebar({ file, onClose, onDelete, onStatsUpdate }) {
               </CardDescription>
             </div>
 
-            {/* Tags */}
             <div>
               <CardTitle className="text-sm font-bold mb-2">Tags</CardTitle>
               <div className="flex flex-wrap gap-2">
@@ -126,9 +119,7 @@ export function FileSidebar({ file, onClose, onDelete, onStatsUpdate }) {
             </div>
           </CardContent>
 
-          {/* 8. Open and Delete Buttons (Bottom Fixed) */}
-          <div className="flex gap-4 p-4 border-t shrink-0">
-            {/* Open Button (Opens in new tab) */}
+          <div className="flex gap-4 p-4 border-t shrink-0 bg-amber-50">
             <Button
               asChild
               className="flex-1 bg-orange-500 hover:bg-orange-700"
@@ -137,7 +128,7 @@ export function FileSidebar({ file, onClose, onDelete, onStatsUpdate }) {
                 <FaExternalLinkAlt /> Open File
               </a>
             </Button>
-            {/* Delete Button */}
+
             <Button
               className="flex-1 bg-orange-500 hover:bg-orange-700"
               onClick={handleInternalDelete}

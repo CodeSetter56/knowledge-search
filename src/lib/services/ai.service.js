@@ -1,16 +1,12 @@
-// src/lib/services/ai.service.js
-
 import OpenAI from "openai";
 
-// 1. Initialize the AI client
 const openrouter = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1", 
+  apiKey: process.env.OPENROUTER_API_KEY, 
 });
 
 const visionModel = "qwen/qwen2.5-vl-32b-instruct:free";
 
-// 2. Define the prompts
 const textPrompt = (text, pageInfo = "") => `
   You will perform two steps.
 
@@ -41,35 +37,36 @@ const imagePrompt = (pageInfo = "") => `
   { "summary": "...", "tags": ["...","...","..."] }
 `;
 
-// 3. Create helper functions to build the messages
+// message array for image/vision requests
 export function buildImageRequest(fileBase64, fileType, pageInfo = "") {
   return [
     {
       role: "user",
       content: [
+        // Image content using data URI
         {
           type: "image_url",
           image_url: { url: `data:${fileType};base64,${fileBase64}` },
         },
+        // Text prompt for the image model
         { type: "text", text: imagePrompt(pageInfo) },
       ],
     },
   ];
 }
 
+// message array for pure text requests
 export function buildTextRequest(text, pageInfo = "") {
   return [
     {
       role: "user",
-      content: textPrompt(
-        text.substring(0, 3000), // Cap input size
-        pageInfo
-      ),
+      // Cap input text size to prevent exceeding context window/token limits
+      content: textPrompt(text.substring(0, 3000), pageInfo),
     },
   ];
 }
 
-// 4. Create the main exported function to call the AI
+// call the AI service and parse the JSON response
 export async function getAiAnalysis(messages) {
   if (!messages || messages.length === 0) {
     throw new Error("No messages provided to AI service.");
@@ -77,12 +74,14 @@ export async function getAiAnalysis(messages) {
 
   console.log(`[ai.service.js] Sending to AI model: ${visionModel}`);
 
+  // chat completion endpoint
   const completion = await openrouter.chat.completions.create({
     model: visionModel,
     messages,
-    response_format: { type: "json_object" }, // Forces pure JSON
+    response_format: { type: "json_object" }, // Force the model to return a JSON object
   });
 
+  // Clean up code block wrappers often included by the model
   const jsonResponse = completion.choices[0].message.content
     .replace(/```json/g, "")
     .replace(/```/g, "");

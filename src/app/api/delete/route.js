@@ -26,16 +26,16 @@ export async function DELETE(req) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
-    // Delete from folder
     try {
       const filePath = path.join(process.cwd(), "public", file.path);
       await unlink(filePath);
       console.log(`[delete] Physical file deleted: ${filePath}`);
+
     } catch (err) {
       console.error("[delete] Error deleting physical file:", err);
     }
 
-    // Update stats 
+    // 5. Update global stats
     let stats = await Stats.findOne({ _id: "global-stats" });
     if (stats) {
       const decrements = getUploadCountersToIncrement(file.fileType);
@@ -44,7 +44,6 @@ export async function DELETE(req) {
           stats[key] = Math.max(0, stats[key] - 1);
         }
       }
-
       await stats.save();
     }
 
@@ -54,7 +53,7 @@ export async function DELETE(req) {
       { message: "File deleted successfully", stats },
       { status: 200 }
     );
-    
+
   } catch (error) {
     console.error("[delete] Error:", error);
     return NextResponse.json(

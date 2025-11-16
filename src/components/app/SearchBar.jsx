@@ -1,5 +1,3 @@
-// src/components/app/SearchBar.jsx
-
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,27 +8,28 @@ export function SearchBar({
   handleSearch,
   isSearching,
 }) {
+
   const handleClear = () => {
     setSearchQuery("");
-    // Clears query and triggers a new search to show all documents
     handleSearch({ preventDefault: () => {} });
   };
 
   return (
-    <form onSubmit={handleSearch} className="flex mb-8">
+
+<form onSubmit={handleSearch} className="flex mb-8">
       <div className="relative flex grow gap-1 items-center">
-        Search: 
+        Search:
+
         <Input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by keyword, tag, or content..."
-          // Added padding-right for clear button clearance
-          className="w-full rounded-r-none text-base pr-10"
+          className="w-full rounded-r-none text-base pr-10 bg-amber-50"
           disabled={isSearching}
-          onFocus={(e) => e.target.select()} // Auto-select text on focus
+          onFocus={(e) => e.target.select()} // Auto-select text on focus for quick entry
         />
-        {/* Clear Button */}
+
         {searchQuery && (
           <Button
             variant="ghost"
@@ -43,7 +42,12 @@ export function SearchBar({
           </Button>
         )}
       </div>
-      <Button type="submit" className="rounded-l-none bg-orange-200" disabled={isSearching}>
+
+      <Button
+        type="submit"
+        className="rounded-l-none bg-orange-500 hover:bg-orange-700"
+        disabled={isSearching}
+      >
         {isSearching ? "..." : <FaSearch />}
       </Button>
     </form>

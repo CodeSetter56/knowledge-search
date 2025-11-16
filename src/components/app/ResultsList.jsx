@@ -1,8 +1,9 @@
-// src/components/app/ResultsList.jsx - MODIFIED
+// src/components/app/ResultsList.jsx
 
 import { SearchResultItem } from "./SearchResultItem";
 
 export function ResultsList({ searchResults, isSearching, onFileClick }) {
+  // skeleton loading state
   if (isSearching) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -27,9 +28,8 @@ export function ResultsList({ searchResults, isSearching, onFileClick }) {
     );
   }
 
-  // 6. Use a grid layout for the icon view
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
       {searchResults.map((file) => (
         <SearchResultItem
           key={file._id}

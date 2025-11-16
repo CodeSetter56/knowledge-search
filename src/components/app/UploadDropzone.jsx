@@ -1,5 +1,3 @@
-// src/components/app/UploadDropzone.jsx
-
 import {
   Card,
   CardContent,
@@ -11,7 +9,6 @@ import { getFileIcon } from "@/lib/utils";
 import { Loader2Icon } from "lucide-react";
 import React from "react";
 
-// Define fixed, square dimensions for the single merged container
 const MERGED_H = "h-[22rem]"; // 352px
 const MERGED_W = "w-[36rem]"; // 576px
 
@@ -24,7 +21,6 @@ function UploadContent({
 }) {
   let mainContent;
 
-  // 1. Processing State
   if (isUploading) {
     mainContent = (
       <div className="flex flex-col items-center justify-center h-full w-full">
@@ -33,25 +29,21 @@ function UploadContent({
       </div>
     );
   }
-  // 2. Preview State (if file exists)
+
   else if (lastUploadedFile) {
     const { icon, isImage } = getFileIcon(lastUploadedFile);
 
     mainContent = (
       <div className="flex w-full h-full divide-x divide-orange-300 p-3">
-        {/* LEFT COLUMN: PREVIEW AREA (Wider, approx 45% width) */}
         <div className="flex flex-col items-center justify-center p-2 w-5/12 h-full">
-          {/* Centered Preview Image/Icon */}
           <div className="flex items-center justify-center w-full max-h-40 shrink-0 mb-2">
             {isImage && lastUploadedFile.path ? (
-              // Display image preview
               <img
                 src={lastUploadedFile.path}
                 alt={lastUploadedFile.filename}
                 className="max-h-full max-w-full object-contain border rounded"
               />
             ) : (
-              // Display generic icon
               <div className="text-orange-600" style={{ fontSize: "3.5rem" }}>
                 {icon}
               </div>
@@ -59,14 +51,11 @@ function UploadContent({
           </div>
         </div>
 
-        {/* RIGHT COLUMN: INFO AREA (Narrower, approx 55% width) */}
         <div className="flex flex-col pl-4 w-7/12 h-full overflow-hidden">
-          {/* Filename (New Position: On top) */}
           <p className="text-lg font-bold text-gray-800 truncate max-w-full mb-2 border-b border-orange-300 pb-1">
             {lastUploadedFile.filename}
           </p>
 
-          {/* Summary Section */}
           <div className="flex flex-col mb-3 pb-3 flex-1 overflow-hidden">
             <CardTitle className="text-base font-semibold text-gray-800 mb-1">
               Summary
@@ -77,7 +66,6 @@ function UploadContent({
             </CardDescription>
           </div>
 
-          {/* Tags Section (Fixed Bottom) */}
           <div className="flex flex-col shrink-0 pt-3 border-t border-orange-300 mt-auto">
             <CardTitle className="text-base font-semibold text-gray-800 mb-1">
               Tags
@@ -99,7 +87,6 @@ function UploadContent({
       </div>
     );
   }
-  // 3. Drop/Click State (When no file is uploaded)
   else {
     mainContent = (
       <div className="flex flex-col items-center justify-center h-full w-full text-center">
@@ -115,7 +102,6 @@ function UploadContent({
     );
   }
 
-  // --- Wrapper Card ---
   return (
     <Card
       className={`mb-8 ${MERGED_H} ${MERGED_W} mx-auto bg-orange-100 border-2 border-dashed
@@ -135,5 +121,4 @@ function UploadContent({
   );
 }
 
-// Export the main component
 export { UploadContent as UploadDropzone };

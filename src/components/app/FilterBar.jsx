@@ -6,22 +6,19 @@ import { FaFilter, FaTimes } from "react-icons/fa";
 import { FILE_TYPE_FILTERS } from "@/lib/utils";
 
 export function FilterBar({ filters, updateFilters, resetFilters }) {
+
   const hasActiveFilters =
     filters.fileType !== "all" || filters.dateFrom || filters.dateTo;
 
   return (
-    <div className="mb-6 p-4 bg-secondary/30 rounded-lg border">
-      {/* Grid layout: 1fr (Filter Status) and 3 equal columns (Inputs) */}
+    <div className="mb-6 p-4 bg-secondary/30 rounded-lg border bg-amber-50">
       <div className="grid grid-cols-2 md:grid-cols-[1fr_2fr_2fr_2fr] gap-3 md:items-end">
-        {/* Filter Status / Button Area (First Column) */}
         <div className="flex flex-col justify-start h-full pb-1 pr-3">
-          {/* Filter Icon and Label (Stacked at the top of the column) */}
           <div className="text-sm flex gap-2 text-muted-foreground mb-4">
             <FaFilter className="text-primary" size={24} />
             <h3 className="font-semibold text-lg text-foreground">Filter</h3>
           </div>
 
-          {/* Conditional Clear Filters Button or No Filters message (Stacked below icon/label) */}
           <div className="flex-1 flex flex-col justify-start">
             {hasActiveFilters ? (
               <Button
@@ -41,7 +38,6 @@ export function FilterBar({ filters, updateFilters, resetFilters }) {
           </div>
         </div>
 
-        {/* File Type Filter */}
         <div>
           <label className="text-sm text-muted-foreground mb-1 block">
             File Type
@@ -59,7 +55,6 @@ export function FilterBar({ filters, updateFilters, resetFilters }) {
           </select>
         </div>
 
-        {/* Date From Filter */}
         <div>
           <label className="text-sm text-muted-foreground mb-1 block">
             From Date
@@ -71,7 +66,6 @@ export function FilterBar({ filters, updateFilters, resetFilters }) {
           />
         </div>
 
-        {/* Date To Filter */}
         <div>
           <label className="text-sm text-muted-foreground mb-1 block">
             To Date
