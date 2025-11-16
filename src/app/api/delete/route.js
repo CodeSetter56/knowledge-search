@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { unlink } from "fs/promises";
-import path from "path";
+import { del } from "@vercel/blob"; 
 import dbConnect from "@/lib/mongodb";
 import File from "@/lib/models/file.model";
 import Stats from "@/lib/models/stats.model";
@@ -8,7 +7,6 @@ import { getUploadCountersToIncrement } from "@/lib/utils";
 
 export async function DELETE(req) {
   try {
-
     await dbConnect();
 
     const { searchParams } = new URL(req.url);
@@ -26,16 +24,14 @@ export async function DELETE(req) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
+    // Vercel Blob 
     try {
-      const filePath = path.join(process.cwd(), "public", file.path);
-      await unlink(filePath);
-      console.log(`[delete] Physical file deleted: ${filePath}`);
-
+      await del(file.path);
+      console.log(`[delete] File deleted from Vercel Blob: ${file.path}`);
     } catch (err) {
-      console.error("[delete] Error deleting physical file:", err);
+      console.error("[delete] Error deleting file from Vercel Blob:", err);
     }
 
-    // 5. Update global stats
     let stats = await Stats.findOne({ _id: "global-stats" });
     if (stats) {
       const decrements = getUploadCountersToIncrement(file.fileType);
@@ -44,6 +40,7 @@ export async function DELETE(req) {
           stats[key] = Math.max(0, stats[key] - 1);
         }
       }
+
       await stats.save();
     }
 
@@ -53,7 +50,6 @@ export async function DELETE(req) {
       { message: "File deleted successfully", stats },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("[delete] Error:", error);
     return NextResponse.json(
