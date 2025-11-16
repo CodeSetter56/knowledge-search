@@ -40,6 +40,7 @@ export default function HomePage() {
 
       {/* Main Content Area (Centered) */}
       <main className="flex-1 p-4 md:p-8 grid place-items-center">
+        <p>*Some files cannot be analyzed by the model becuase its free and not as powerful and also due to messy code</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl w-full">
           {/* Left Column: Marketing/CTA text */}
           <div className="flex flex-col justify-center space-y-6">
